@@ -1,50 +1,70 @@
 # include <iostream>
+# include <stdlib.h>
 using namespace std;
-int c[50005];
-void quicksort(int low,int high)
+typedef struct minheap *Heap;
+typedef struct minheap//极小化堆数组 
 {
-	int i=low,j=high,temp=c[(i+j)/2];
-    while(i<j)
+	int last,maxsize;
+	int *heap;
+}Minheap;
+Heap MinHeapInit(int HeapSize)//建空堆 
+{
+	Heap H=(Heap)malloc(sizeof *H);
+	H->maxsize=HeapSize;
+	H->heap=(int *)malloc((H->maxsize+1)*sizeof(int));
+	H->last=0;
+	return H;
+}
+Heap MinHeapInit(int HeapSize);
+void HeapItsert (int x,Heap H)//对堆插入元素 
+{
+	if (H->last==H->maxsize) return;
+	int i=++H->last;
+	while(i!=1 && (x<H->heap[i/2]))
 	{
-		
-        while((c[i]<temp)&&(i<high)) i++;
-        while((c[j]>temp)&&(j>low)) j--;
-        if(i<=j) 
-		{
-			int o;
-			o=c[i];
-			c[i]=c[j];
-			c[j]=o;
-			i++;
-			j--;
-		}
-    }
-    if (j>low)  quicksort(low,j);
-    if (i<high) quicksort(i,high);
+		H->heap[i]=H->heap[i/2];
+		i/=2;
+	}
+	H->heap[i]=x;
+}
+int DeleteMin(Heap H)//抽取最小元 
+{
+	if (H->last==0) exit(1);
+	int x=H->heap[1];
+	int y=H->heap[H->last--];
+	int i=1,ci=2;
+	while(ci<=H->last)
+	{
+		if ((ci<=H->last) &&(H->heap[ci+1]<H->heap[ci])) ci++;
+		if (H->heap[ci]>y)break;
+		H->heap[i]=H->heap[ci];
+		i=ci;
+		ci*=2;
+	}
+	H->heap[i]=y;
+	return x;
 }
 int main()
 {
 	int n;
 	cin>>n;
-	for (int i=0;i<n;i++) cin>>c[i];
-	quicksort(0,n-1);
+	Heap Minheap;
+	Minheap=MinHeapInit(n);
+	for (int i=0;i<n;i++) 
+	{
+		int a;
+		cin>>a;
+		HeapItsert(a,Minheap);
+	}
 	int sum=0;
 	int l=1;
 	while(l<n)
 	{
 		l++;
-		int k=c[0]+c[1];
+		int k=DeleteMin(Minheap);
+		k=k+DeleteMin(Minheap);
+		HeapItsert(k,Minheap);
 		sum=sum+k;
-		int t=2;
-		for (int i=2;i<n;i++)
-		if ((k==0)||(k>c[i])) c[i-t]=c[i];
-		else 
-		{
-			c[i-t]=k;
-			k=0;
-			t=1;
-			c[i-t]=c[i];
-		}
 	}
 	cout<<sum;
 	return 0;
